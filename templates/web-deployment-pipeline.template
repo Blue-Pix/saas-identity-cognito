@@ -3,11 +3,11 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: This CloudFormation Template creates the CI & CD pipeline for the AngularClient.
   (qs-1nlegmi43)
 Parameters:
+  MyIpAddress:
+    Type: String
   TemplateBucket:
     Type: String
   TemplatePrefix:
-    Type: String
-  ServiceUrl:
     Type: String
   ServiceName:
     Type: String
@@ -17,7 +17,7 @@ Resources:
   WebBucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
+      # AccessControl: Private
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
@@ -30,6 +30,27 @@ Resources:
           AllowedOrigins:
           - '*'
           MaxAge: '3000'
+  WebBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource:
+              !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref WebBucket
+                  - /*
+            Principal: '*'
+            Condition:
+              IpAddress:
+                'aws:SourceIp':
+                  - !Ref MyIpAddress
+           
   CloudFormationExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -158,7 +179,7 @@ Resources:
             build:
               commands:
                 - which sed
-                - sed -i -e "s#DOMAIN_URL#$SERVICE_URL#g" app/scripts/constants.js
+                - sed -i -e "s#DOMAIN_URL#127.0.0.1#g" app/scripts/constants.js
                 - cat app/scripts/constants.js
                 - pwd
                 - ./node_modules/grunt-cli/bin/grunt build &
@@ -166,7 +187,7 @@ Resources:
             post_build:
               commands:
                 - pwd
-                - aws s3 cp --recursive ./dist s3://"${WEBSITE_BUCKET}" --acl public-read
+                - aws s3 cp --recursive ./dist s3://"${WEBSITE_BUCKET}"
                 - cd ../
                 - curl -T body.json "${WAIT_HANDLE}"
                 - echo BuildCompleted
@@ -181,8 +202,6 @@ Resources:
           Value: !Ref ServiceName
         - Name: WEBSITE_BUCKET
           Value: !Ref WebBucket
-        - Name: SERVICE_URL
-          Value: !Ref ServiceUrl
         - Name: WAIT_HANDLE
           Value: !Ref WaitURL
       Name: !Ref AWS::StackName

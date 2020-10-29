@@ -16,8 +16,6 @@ Parameters:
   RoleArn:
     Description: The ARN of the role required for copying files.
     Type: String
-Conditions:
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
   DestinationBucket:
     Type: AWS::S3::Bucket
@@ -33,10 +31,10 @@ Resources:
       TemplateURL:
         !Sub
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/copy-files.template'
-          - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
       Parameters:
-        TemplateBucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        TemplateBucket: !Ref QSS3BucketName
         TemplatePrefix: !Ref QSS3KeyPrefix
         DestinationBucket: !Ref DestinationBucket
         RoleArn: !Ref RoleArn

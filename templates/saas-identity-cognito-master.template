@@ -37,13 +37,7 @@ Metadata:
       - Company
       - Firstname
       - Lastname
-    - Label:
-        default: SaaS Identity DynamoDB Table Configuration
-      Parameters:
-      - UserTable
-      - TenantTable
-      - ProductTable
-      - OrderTable
+      - MyIpAddress
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -75,14 +69,8 @@ Metadata:
         default: First Name
       Lastname:
         default: Last Name
-      UserTable:
-        default: User
-      TenantTable:
-        default: Tenant
-      ProductTable:
-        default: Product
-      OrderTable:
-        default: Order
+      MyIpAddress:
+        default: 0.0.0.0/32
 Parameters:
   AvailabilityZones:
     Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
@@ -137,7 +125,7 @@ Parameters:
       It cannot start or end with a hyphen (-).
     Type: String
   QSS3BucketRegion:
-    Default: 'us-east-1'
+    Default: 'ap-northeast-1'
     Description: 'The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
     Type: String
   QSS3KeyPrefix:
@@ -171,24 +159,10 @@ Parameters:
     Description: The Last Name of the Sys Admin.
     Default: MyLastName
     Type: String
-  UserTable:
-    Description: The DynamoDB Table for Users of the Multi-Tenant System
-    Default: User
+  MyIpAddress:
+    Description: your ip address
+    Default: 0.0.0.0/32
     Type: String
-  TenantTable:
-    Description: The DynamoDB Table for Tenants of the Multi-Tenant System
-    Default: Tenant
-    Type: String
-  ProductTable:
-    Description: The DynamoDB Table for Products of the Multi-Tenant System
-    Default: Product
-    Type: String
-  OrderTable:
-    Description: The DynamoDB Table for Orders of the Multi-Tenant System
-    Default: Order
-    Type: String
-Conditions:
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -196,8 +170,8 @@ Resources:
       TemplateURL:
         !Sub
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template'
-          - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
       Parameters:
         AvailabilityZones:
           !Join
@@ -217,8 +191,8 @@ Resources:
       TemplateURL:
         !Sub
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/saas-identity-cognito.template'
-          - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
       Parameters:
         KeyPairName: !Ref KeyPairName
         InstanceType: !Ref InstanceType
@@ -245,10 +219,7 @@ Resources:
         Company: !Ref Company
         Firstname: !Ref Firstname
         Lastname: !Ref Lastname
-        UserTable: !Ref UserTable
-        TenantTable: !Ref TenantTable
-        ProductTable: !Ref ProductTable
-        OrderTable: !Ref OrderTable
+        MyIpAddress: !Ref MyIpAddress
         VPCID:
           !GetAtt
           - VPCStack

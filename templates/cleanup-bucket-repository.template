@@ -22,8 +22,6 @@ Parameters:
   RoleArn:
     Description: The ARN of the Cleanup Role.
     Type: String
-Conditions:
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
   BucketCleanup:
     Type: AWS::CloudFormation::Stack
@@ -31,8 +29,8 @@ Resources:
       TemplateURL:
         !Sub
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-bucket.template'
-          - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
       Parameters:
         Bucket: !Ref Bucket
         ServiceToken: !Ref RoleArn
@@ -42,8 +40,8 @@ Resources:
       TemplateURL:
         !Sub
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-repository.template'
-          - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
       Parameters:
         Repository: !Ref Repository
         ServiceToken: !Ref RoleArn
