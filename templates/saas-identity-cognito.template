@@ -36,6 +36,13 @@ Metadata:
       - Firstname
       - Lastname
       - MyIpAddress
+    - Label:
+        default: DB Configuration
+      Parameters:
+      - DBInstanceClass
+      - DBName
+      - DBMasterUserName
+      - DBPassword
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -69,6 +76,14 @@ Metadata:
         default: Last Name
       MyIpAddress:
         default: My IP Address
+      DBInstanceClass:
+        default: Database instance type
+      DBName:
+        default: Database name
+      DBMasterUserName:
+        default: Database master user name
+      DBPassword:
+        default: Database master user password
 Parameters:
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
@@ -140,6 +155,21 @@ Parameters:
     Type: String
     Description: your ip address
     Default: 0.0.0.0/32
+  DBInstanceClass:
+    Type: String
+    Description: db instance type
+    Default: db.r5.large
+  DBName: 
+    Type: String
+    Description: database name
+  DBMasterUserName:
+    Type: String
+    Description: db master user name
+    NoEcho: true
+  DBPassword:
+    Type: String
+    Description: db master user password
+    NoEcho: true
 Rules:
   KeyPairsNotEmpty:
     Assertions:
@@ -207,6 +237,23 @@ Resources:
           - ','
           - - !Ref PrivateSubnet1ID
             - !Ref PrivateSubnet2ID
+  RDS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/rds.yml'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        Environment: !Ref AWS::StackName
+        DBInstanceClass: !Ref DBInstanceClass
+        DBName: !Ref DBName
+        DBMasterUserName: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        RDSSecurityGroup: !GetAtt SecurityGroups.Outputs.RDSSecurityGroup
+        Subnet1: !Ref PrivateSubnet1ID
+        Subnet2: !Ref PrivateSubnet2ID
   Role:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -241,6 +288,7 @@ Resources:
           - S3Region: !Ref QSS3BucketRegion
             S3Bucket: !Ref QSS3BucketName
       Parameters:
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
         MyIpAddress: !Ref MyIpAddress
         ServiceName: client
         TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
@@ -273,391 +321,363 @@ Resources:
           - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/docker-bucket-repository.template'
           - S3Region: !Ref QSS3BucketRegion
             S3Bucket: !Ref QSS3BucketName
-  # WaitHandleUserService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleAuthService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleTenantService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleRegService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleSysService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleProductService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # WaitHandleOrderService:
-  #   Type: AWS::CloudFormation::WaitConditionHandle
-  # UserService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - WebClient
-  #   - WaitConditionWebClient
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /user*
-  #       HealthCheck: /user/health
-  #       ServiceName: user-manager
-  #       Priority: 2
-  #       ContainerPort: 3001
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleUserService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # AuthService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - UserService
-  #   - WaitConditionUserService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /auth*
-  #       HealthCheck: /auth/health
-  #       ServiceName: auth-manager
-  #       Priority: 3
-  #       ContainerPort: 3000
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleAuthService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # TenantService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - AuthService
-  #   - WaitConditionAuthService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /tenant*
-  #       HealthCheck: /tenant/health
-  #       ServiceName: tenant-manager
-  #       Priority: 4
-  #       ContainerPort: 3003
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleTenantService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # RegService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - TenantService
-  #   - WaitConditionTenantService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /reg*
-  #       HealthCheck: /reg/health
-  #       ServiceName: tenant-registration
-  #       Priority: 5
-  #       ContainerPort: 3004
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleRegService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # SysService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - RegService
-  #   - WaitConditionRegService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /sys*
-  #       HealthCheck: /sys/health
-  #       ServiceName: system-registration
-  #       Priority: 6
-  #       ContainerPort: 3011
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleSysService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # ProductService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - SysService
-  #   - WaitConditionSysService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /product*
-  #       HealthCheck: /product/health
-  #       ServiceName: product-manager
-  #       Priority: 7
-  #       ContainerPort: 3006
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleProductService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # OrderService:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #   - ProductService
-  #   - WaitConditionProductService
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       VPC: !Ref VPCID
-  #       Cluster: !GetAtt ECS.Outputs.Cluster
-  #       ServiceUrl: !GetAtt API.Outputs.RootUrl
-  #       SnsRole: !GetAtt Role.Outputs.SNSRoleArn
-  #       UserTable: !GetAtt DynamoDBTables.Outputs.UserTable
-  #       TenantTable: !GetAtt DynamoDBTables.Outputs.TenantTable
-  #       ProductTable: !GetAtt DynamoDBTables.Outputs.ProductTable
-  #       OrderTable: !GetAtt DynamoDBTables.Outputs.OrderTable
-  #       Listener: !GetAtt ALB.Outputs.Listener
-  #       Path: /order*
-  #       HealthCheck: /order/health
-  #       ServiceName: order-manager
-  #       Priority: 8
-  #       ContainerPort: 3015
-  #       TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
-  #       TemplatePrefix: !Ref QSS3KeyPrefix
-  #       WaitURL: !Ref WaitHandleOrderService
-  #       CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
-  #       ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
-  #       Repository: !GetAtt BucketRepository.Outputs.Repository
-  # WaitConditionUserService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - UserService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleUserService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionAuthService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - AuthService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleAuthService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionTenantService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - TenantService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleTenantService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionRegService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - RegService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleRegService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionSysService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - SysService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleSysService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionProductService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - ProductService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleProductService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # WaitConditionOrderService:
-  #   Type: AWS::CloudFormation::WaitCondition
-  #   DependsOn:
-  #   - OrderService
-  #   Properties:
-  #     Handle:
-  #       Ref: WaitHandleOrderService
-  #     Timeout: '3600'
-  #     Count: '1'
-  # UserServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt UserService.Outputs.ServiceStack
-  # AuthServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt AuthService.Outputs.ServiceStack
-  # TenantServiceCleanup:
-  #   DependsOn: Role
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt TenantService.Outputs.ServiceStack
-  # RegServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt RegService.Outputs.ServiceStack
-  # SysServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt SysService.Outputs.ServiceStack
-  # ProductServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt ProductService.Outputs.ServiceStack
-  # OrderServiceCleanup:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: Role
-  #   Properties:
-  #     TemplateURL:
-  #       !Sub
-  #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       ServiceToken: !GetAtt Role.Outputs.CleanupRole
-  #       Stack: !GetAtt OrderService.Outputs.ServiceStack
+  WaitHandleUserService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleAuthService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleTenantService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleRegService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleSysService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleProductService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  WaitHandleOrderService:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  UserService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - WebClient
+    - WaitConditionWebClient
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /user*
+        HealthCheck: /user/health
+        ServiceName: user-manager
+        Priority: 2
+        ContainerPort: 3001
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleUserService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  AuthService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - UserService
+    - WaitConditionUserService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /auth*
+        HealthCheck: /auth/health
+        ServiceName: auth-manager
+        Priority: 3
+        ContainerPort: 3000
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleAuthService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  TenantService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - AuthService
+    - WaitConditionAuthService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /tenant*
+        HealthCheck: /tenant/health
+        ServiceName: tenant-manager
+        Priority: 4
+        ContainerPort: 3003
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleTenantService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  RegService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - TenantService
+    - WaitConditionTenantService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /reg*
+        HealthCheck: /reg/health
+        ServiceName: tenant-registration
+        Priority: 5
+        ContainerPort: 3004
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleRegService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  SysService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - RegService
+    - WaitConditionRegService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /sys*
+        HealthCheck: /sys/health
+        ServiceName: system-registration
+        Priority: 6
+        ContainerPort: 3011
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleSysService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  ProductService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - SysService
+    - WaitConditionSysService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /product*
+        HealthCheck: /product/health
+        ServiceName: product-manager
+        Priority: 7
+        ContainerPort: 3006
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleProductService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  OrderService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - ProductService
+    - WaitConditionProductService
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/deployment-pipeline-test.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        VPC: !Ref VPCID
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        SnsRole: !GetAtt Role.Outputs.SNSRoleArn
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /order*
+        HealthCheck: /order/health
+        ServiceName: order-manager
+        Priority: 8
+        ContainerPort: 3015
+        TemplateBucket: !GetAtt ZipFiles.Outputs.AssetBucket
+        TemplatePrefix: !Ref QSS3KeyPrefix
+        WaitURL: !Ref WaitHandleOrderService
+        CloudFormationExecutionRole: !GetAtt Role.Outputs.CloudFormationExecutionRole
+        ArtifactBucket: !GetAtt BucketRepository.Outputs.ArtifactBucket
+        Repository: !GetAtt BucketRepository.Outputs.Repository
+  WaitConditionUserService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - UserService
+    Properties:
+      Handle:
+        Ref: WaitHandleUserService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionAuthService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - AuthService
+    Properties:
+      Handle:
+        Ref: WaitHandleAuthService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionTenantService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - TenantService
+    Properties:
+      Handle:
+        Ref: WaitHandleTenantService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionRegService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - RegService
+    Properties:
+      Handle:
+        Ref: WaitHandleRegService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionSysService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - SysService
+    Properties:
+      Handle:
+        Ref: WaitHandleSysService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionProductService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - ProductService
+    Properties:
+      Handle:
+        Ref: WaitHandleProductService
+      Timeout: '3600'
+      Count: '1'
+  WaitConditionOrderService:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn:
+    - OrderService
+    Properties:
+      Handle:
+        Ref: WaitHandleOrderService
+      Timeout: '3600'
+      Count: '1'
+  UserServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt UserService.Outputs.ServiceStack
+  AuthServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt AuthService.Outputs.ServiceStack
+  TenantServiceCleanup:
+    DependsOn: Role
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt TenantService.Outputs.ServiceStack
+  RegServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt RegService.Outputs.ServiceStack
+  SysServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt SysService.Outputs.ServiceStack
+  ProductServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt ProductService.Outputs.ServiceStack
+  OrderServiceCleanup:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Role
+    Properties:
+      TemplateURL:
+        !Sub
+          - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clean-cfnstack.template'
+          - S3Region: !Ref QSS3BucketRegion
+            S3Bucket: !Ref QSS3BucketName
+      Parameters:
+        ServiceToken: !GetAtt Role.Outputs.CleanupRole
+        Stack: !GetAtt OrderService.Outputs.ServiceStack
   BucketRepositoryCleanup:
     Type: AWS::CloudFormation::Stack
     DependsOn: Role
@@ -732,11 +752,11 @@ Resources:
   #     TemplateURL:
   #       !Sub
   #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/rest-request-create.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #         - S3Region: !Ref QSS3BucketRegion
+  #           S3Bucket: !Ref QSS3BucketName
   #     Parameters:
-  #       Domain: !GetAtt API.Outputs.RootUrl
-  #       Protocol: https://
+  #       Domain: !GetAtt ALB.Outputs.LoadBalancerUrl
+  #       Protocol: http://
   #       Body:
   #         Fn::Sub: '{"companyName":"${Company}","accountName":"${Company}","ownerName":"${Email}","email":"${Email}","userName":"${Email}","firstName":"${Firstname}","lastName":"${Lastname}"}'
   #       Path: /sys/admin
@@ -773,8 +793,8 @@ Resources:
   #     TemplateURL:
   #       !Sub
   #         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/rest-request-delete.template'
-  #         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #         - S3Region: !Ref QSS3BucketRegion
+  #           S3Bucket: !Ref QSS3BucketName
   #     Parameters:
   #       Domain: !GetAtt ALB.Outputs.LoadBalancerUrl
   #       Protocol: http://

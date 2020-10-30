@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: create RDS for PostgreSQL
+Parameters:
+  Environment:
+    Type: String
+  DBInstanceClass:
+    Type: String
+  DBName:
+    Type: String
+  DBMasterUserName:
+    Type: String
+    NoEcho: true
+  DBPassword:
+    Type: String
+    NoEcho: true
+  RDSSecurityGroup:
+    Type: String
+  Subnet1:
+    Type: String
+  Subnet2:
+    Type: String
+Resources: 
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties: 
+      DatabaseName: !Ref DBName
+      DBClusterIdentifier: !Ref Environment
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      EnableCloudwatchLogsExports: 
+        - postgresql
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      EngineVersion: 11.8
+      MasterUsername: !Ref DBMasterUserName
+      MasterUserPassword: !Ref DBPassword
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+  Writer: 
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: !Ref DBInstanceClass
+      PubliclyAccessible: false
+    DeletionPolicy: Delete
+  Reader: 
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: !Ref DBInstanceClass
+      PubliclyAccessible: false
+    DeletionPolicy: Delete
+  DBSubnetGroup: 
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: "-"
+      SubnetIds: 
+        - !Ref Subnet1
+        - !Ref Subnet2
+Outputs:
+  DBClusterEndpoint:
+    Value: !GetAtt DBCluster.Endpoint.Address

@@ -32,6 +32,19 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${EnvironmentName}-LoadBalancers
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Access to the database only from application
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !Ref ECSHostSecurityGroup
+        IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-rds
 Outputs:
   ECSHostSecurityGroup:
     Description: A reference to the security group for ECS hosts
@@ -39,4 +52,7 @@ Outputs:
   LoadBalancerSecurityGroup:
     Description: A reference to the security group for load balancers
     Value: !Ref LoadBalancerSecurityGroup
+  RDSSecurityGroup:
+    Description: A reference to the security group for RDS
+    Value: !GetAtt RDSSecurityGroup.GroupId
 ...

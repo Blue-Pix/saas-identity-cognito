@@ -38,6 +38,13 @@ Metadata:
       - Firstname
       - Lastname
       - MyIpAddress
+    - Label:
+        default: DB Configuration
+      Parameters:
+      - DBInstanceClass
+      - DBName
+      - DBMasterUserName
+      - DBPassword
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -70,7 +77,15 @@ Metadata:
       Lastname:
         default: Last Name
       MyIpAddress:
-        default: 0.0.0.0/32
+        default: My IP Address
+      DBInstanceClass:
+        default: Database instance type
+      DBName:
+        default: Database name
+      DBMasterUserName:
+        default: Database master user name
+      DBPassword:
+        default: Database master user password
 Parameters:
   AvailabilityZones:
     Description: 'List of Availability Zones to use for the subnets in the VPC. Note:
@@ -163,6 +178,21 @@ Parameters:
     Description: your ip address
     Default: 0.0.0.0/32
     Type: String
+  DBInstanceClass:
+    Type: String
+    Description: db instance type
+    Default: db.r5.large
+  DBName: 
+    Type: String
+    Description: database name
+  DBMasterUserName:
+    Type: String
+    Description: db master user name
+    NoEcho: true
+  DBPassword:
+    Type: String
+    Description: db master user password
+    NoEcho: true
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -220,6 +250,10 @@ Resources:
         Firstname: !Ref Firstname
         Lastname: !Ref Lastname
         MyIpAddress: !Ref MyIpAddress
+        DBInstanceClass: !Ref DBInstanceClass
+        DBName: !Ref DBName
+        DBMasterUserName: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
         VPCID:
           !GetAtt
           - VPCStack

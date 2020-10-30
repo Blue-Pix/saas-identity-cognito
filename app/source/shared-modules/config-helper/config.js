@@ -18,8 +18,7 @@ module.exports.configure = function(environment) {
     }
         switch(environment) {
         case "production":
-
-            if(process.env.AWS_REGION == undefined || process.env.SERVICE_URL == undefined || process.env.SNS_ROLE_ARN == undefined || process.env.AWS_ACCOUNT_ID == undefined || process.env.USER_TABLE == undefined || process.env.TENANT_TABLE == undefined || process.env.PRODUCT_TABLE == undefined || process.env.ORDER_TABLE == undefined)
+            if(process.env.AWS_REGION == undefined || process.env.SERVICE_URL == undefined || process.env.SNS_ROLE_ARN == undefined || process.env.AWS_ACCOUNT_ID == undefined)
             {
                 var error = "Production Environment Variables Not Properly Configured. \nPlease ensure AWS_REGION, SERVCE_URL, SNS_ROLE_ARN, AWS_ACCOUNT_ID environment Variables are set."
                 throw error;
@@ -40,10 +39,10 @@ module.exports.configure = function(environment) {
                     service_url: prod.protocol + process.env.SERVICE_URL,
                     name: name,
                     table: {
-                        user: process.env.USER_TABLE,
-                        tenant: process.env.TENANT_TABLE,
-                        product: process.env.PRODUCT_TABLE,
-                        order: process.env.ORDER_TABLE
+                        user: "user",
+                        tenant: "tenant",
+                        product: "product",
+                        order: "order"
                     },
                     userRole: prod.userRole,
                     role: {

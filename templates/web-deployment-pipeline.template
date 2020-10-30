@@ -11,6 +11,8 @@ Parameters:
     Type: String
   ServiceName:
     Type: String
+  ServiceUrl:
+    Type: String
   WaitURL:
     Type: String
 Resources:
@@ -179,7 +181,7 @@ Resources:
             build:
               commands:
                 - which sed
-                - sed -i -e "s#DOMAIN_URL#127.0.0.1#g" app/scripts/constants.js
+                - sed -i -e "s#DOMAIN_URL#$SERVICE_URL#g" app/scripts/constants.js
                 - cat app/scripts/constants.js
                 - pwd
                 - ./node_modules/grunt-cli/bin/grunt build &
@@ -200,6 +202,8 @@ Resources:
           Value: !Ref AWS::Region
         - Name: SERVICE_NAME
           Value: !Ref ServiceName
+        - Name: SERVICE_URL
+          Value: !Ref ServiceUrl
         - Name: WEBSITE_BUCKET
           Value: !Ref WebBucket
         - Name: WAIT_HANDLE
