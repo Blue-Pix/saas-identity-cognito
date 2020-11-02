@@ -61,7 +61,6 @@ app.post('/sys/admin', function (req, res) {
         else {
             registerTenantAdmin(tenant)
                 .then(function (tenData) {
-
                     //Adding Data to the Tenant Object that will be required to cleaning up all created resources for all tenants.
                     tenant.UserPoolId = tenData.pool.UserPool.Id;
                     tenant.IdentityPoolId = tenData.identityPool.IdentityPoolId;
@@ -72,6 +71,8 @@ app.post('/sys/admin', function (req, res) {
 
                     tenant.systemAdminPolicy = tenData.policy.systemAdminPolicy;
                     tenant.systemSupportPolicy = tenData.policy.systemSupportPolicy;
+
+                    tenant.ClientId = tenData.userPoolClient.UserPoolClient.ClientId;
 
                     saveTenantData(tenant)
                 })
@@ -153,8 +154,6 @@ function registerTenantAdmin(tenant) {
         var tenantAdminData = {
             "tenant_id": tenant.id,
             "companyName": tenant.companyName,
-            "accountName": tenant.accountName,
-            "ownerName": tenant.ownerName,
             "tier": tenant.tier,
             "email": tenant.email,
             "userName": tenant.userName,
@@ -195,13 +194,12 @@ function saveTenantData(tenant) {
         var tenantRequestData = {
             "id": tenant.id,
             "companyName": tenant.companyName,
-            "accountName": tenant.accountName,
-            "ownerName": tenant.ownerName,
             "tier": tenant.tier,
             "email": tenant.email,
             "status": "Active",
             "UserPoolId": tenant.UserPoolId,
             "IdentityPoolId": tenant.IdentityPoolId,
+            "ClientId": tenant.ClientId,
             "systemAdminRole": tenant.systemAdminRole,
             "systemSupportRole": tenant.systemSupportRole,
             "trustRole": tenant.trustRole,

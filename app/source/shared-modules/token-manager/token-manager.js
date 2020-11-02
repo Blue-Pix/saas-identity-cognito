@@ -309,7 +309,7 @@ function authenticateUserInPool(userPool, idToken, callback) {
     var params = {
         token: idToken,
         provider: provider,
-        IdentityPoolId: userPool.IdentityPoolId
+        IdentityPoolId: userPool.identityPoolId
     }
     var getIdentity = getId(params, function (ret, data) {
         if (ret) {

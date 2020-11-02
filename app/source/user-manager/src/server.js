@@ -297,7 +297,7 @@ app.post('/user', function (req, res) {
         lookupUserPoolData(requestingUser, user.tenant_id, false, function(err, userPoolData) {
             // if the user pool found, proceed
             if (!err) {
-                createNewUser(credentials, userPoolData.UserPoolId, userPoolData.IdentityPoolId, userPoolData.client_id, user.tenant_id, user)
+                createNewUser(credentials, userPoolData.userPoolId, userPoolData.identityPoolId, userPoolData.client_id, user.tenant_id, user)
                     .then(function(rowCount) {
                         winston.debug('User ' + user.userName + ' created');
                         res.status(200).send({status: 'success'});
@@ -737,6 +737,7 @@ function lookupUserPoolData(userId, tenantId, isSystemContext, callback) {
                                 console.debug('No tenant found: ' + userId);
                             } else {
                                 userData.userPoolId = tenants[0].user_pool_id;
+                                userData.identityPoolId = tenants[0].identity_pool_id;
                                 userData.client_id = tenants[0].client_id;
                             }
                             callback(null, userData);
@@ -756,7 +757,22 @@ function lookupUserPoolData(userId, tenantId, isSystemContext, callback) {
                 callback(err);
             }
             else {
-                callback(null, user);
+                dbHelper.lookupTenant({ id: user.tenant_id }, function (err, tenants) {
+                    if (err) {
+                        winston.error('Error getting tenant: ' + err.message);
+                        callback(err);
+                    }
+                    else {
+                        if (tenants.length == 0) {
+                            console.debug('No tenant found: ' + userId);
+                        } else {
+                            user.userPoolId = tenants[0].user_pool_id;
+                            user.identityPoolId = tenants[0].identity_pool_id;
+                            user.client_id = tenants[0].client_id;
+                        }
+                        callback(null, user);
+                    }
+                });
             }
         });
     }
