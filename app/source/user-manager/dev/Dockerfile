@@ -30,7 +30,7 @@ RUN npm -v
 RUN     yum update -y
 #Install Code
 RUN mkdir /app/
-COPY ./src/ /app/user-manager/
+COPY ./user-manager/src/ /app/user-manager/
 COPY ./shared-modules/ /app/shared-modules/
 #------------------
 #Shared Modules Setup

@@ -30,7 +30,7 @@ RUN npm -v
 RUN     yum update -y
 #Install Code
 RUN mkdir /app/
-COPY ./src/ /app/user-manager/
+COPY ./tenant-manager/src/ /app/tenant-manager/
 COPY ./shared-modules/ /app/shared-modules/
 #------------------
 #Shared Modules Setup
@@ -45,13 +45,14 @@ RUN cd /app/shared-modules/config-helper
 RUN npm install
 #-------------------
 #Setup Working Directory
-WORKDIR /app/user-manager/
+WORKDIR /app/tenant-manager/
 #Set Sevice Config Directory
 ENV NODE_CONFIG_DIR=../shared-modules/config-helper/config/
 #Install App
-RUN cd /app/user-manager/
+RUN cd /app/tenant-manager/
 RUN npm install
 #Start App
-CMD ["node", "/app/user-manager/server.js"]
+CMD ["node", "/app/tenant-manager/server.js"]
 #expose a port
-EXPOSE 3001
+# CMD ["/bin/bash"]
+EXPOSE 3003

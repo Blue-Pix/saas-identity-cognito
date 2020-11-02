@@ -1,0 +1,15 @@
+{
+  "Name": "db-helper",
+  "version": "1.0.0",
+  "description": "Helper functions to assist with DB interactions",
+  "main": "db-helper.js",
+  "scripts": {
+    "test": "echo \"Error: no tests currently specified\""
+  },
+  "dependencies": {
+    "pg": "^8.4.2",
+    "winston": "latest"
+  },
+  "author": "Blue-Pix",
+  "license": "Apache Open Source"
+}

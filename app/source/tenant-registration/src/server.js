@@ -124,8 +124,8 @@ function registerTenantAdmin(tenant) {
         var tenantAdminData = {
             "tenant_id": tenant.id,
             "companyName": tenant.companyName,
-            "accountName": tenant.accountName,
-            "ownerName": tenant.ownerName,
+            // "accountName": tenant.accountName,
+            // "ownerName": tenant.ownerName,
             "tier": tenant.tier,
             "email": tenant.email,
             "userName": tenant.userName,
@@ -136,7 +136,6 @@ function registerTenantAdmin(tenant) {
 
         // REST API URL
         var registerTenantUserURL = configuration.url.user + '/reg';
-
         // fire request
         request({
             url: registerTenantUserURL,
@@ -167,8 +166,6 @@ function saveTenantData(tenant) {
         var tenantRequestData = {
             "id": tenant.id,
             "companyName": tenant.companyName,
-            "accountName": tenant.accountName,
-            "ownerName": tenant.ownerName,
             "tier": tenant.tier,
             "email": tenant.email,
             "status": "Active",
@@ -181,7 +178,6 @@ function saveTenantData(tenant) {
             "systemSupportPolicy": tenant.systemSupportPolicy,
             "userName": tenant.userName,
         };
-
 
         // fire request
         request({

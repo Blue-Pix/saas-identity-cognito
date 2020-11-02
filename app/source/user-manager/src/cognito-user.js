@@ -258,21 +258,6 @@ module.exports.createUserPool = function (tenantId) {
                         MaxLength: '256',
                         MinLength: '1'
                     }
-                },
-                {
-                    AttributeDataType: 'String',
-                    DeveloperOnlyAttribute: false,
-                    Mutable: true,
-                    Name: 'account_name',
-                    NumberAttributeConstraints: {
-                        MaxValue: '256',
-                        MinValue: '1'
-                    },
-                    Required: false,
-                    StringAttributeConstraints: {
-                        MaxLength: '256',
-                        MinLength: '1'
-                    }
                 }
             ],
             SmsConfiguration: {
@@ -325,7 +310,6 @@ module.exports.createUserPoolClient = function (poolConfig) {
                 'custom:tier',
                 'custom:tenant_id',
                 'custom:company_name',
-                'custom:account_name',
                 'custom:role'
                 /* more items */
             ],

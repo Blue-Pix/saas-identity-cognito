@@ -14,7 +14,8 @@ const configModule = require('../shared-modules/config-helper/config.js');
 var configuration = configModule.configure(process.env.NODE_ENV);
 // Declare shared modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
-const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
+const DBHelper = require('../shared-modules/db-helper/db-helper.js');
+const dbHelper = new DBHelper();
 const cognitoUsers = require('./cognito-user.js');
 
 
@@ -219,7 +220,7 @@ app.delete('/user/tenants', function (req, res) {
 app.get('/user/pool/:id', function (req, res) {
     winston.debug('Looking up user pool data for: ' + req.params.id);
     tokenManager.getSystemCredentials(function (credentials) {
-        lookupUserPoolData(credentials, req.params.id, null, true, function (err, user) {
+        lookupUserPoolData(req.params.id, null, true, function (err, user) {
             if (err) {
                 res.status(400).send('{"Error" : "Error getting user"}');
             }
@@ -242,7 +243,7 @@ app.get('/user/:id', function (req, res) {
         // get the tenant id from the request
         var tenantId = tokenManager.getTenantId(req);
 
-        lookupUserPoolData(credentials, req.params.id, tenantId, false, function(err, user) {
+        lookupUserPoolData(req.params.id, tenantId, false, function(err, user) {
             if (err)
                 res.status(400).send('{"Error" : "Error getting user"}');
             else {
@@ -293,11 +294,11 @@ app.post('/user', function (req, res) {
 
         // get the user pool data using the requesting user
         // all users added in the context of this user
-        lookupUserPoolData(credentials, requestingUser, user.tenant_id, false, function(err, userPoolData) {
+        lookupUserPoolData(requestingUser, user.tenant_id, false, function(err, userPoolData) {
             // if the user pool found, proceed
             if (!err) {
                 createNewUser(credentials, userPoolData.UserPoolId, userPoolData.IdentityPoolId, userPoolData.client_id, user.tenant_id, user)
-                    .then(function(createdUser) {
+                    .then(function(rowCount) {
                         winston.debug('User ' + user.userName + ' created');
                         res.status(200).send({status: 'success'});
                     })
@@ -364,8 +365,6 @@ app.post('/user/reg', function (req, res) {
                     res.status(200).send(result);
             });
     });
-
-
 });
 
 /**
@@ -425,7 +424,7 @@ app.delete('/user/:id', function (req, res) {
         var tenantId = tokenManager.getTenantId(req);
 
         // see if the user exists in the system
-        lookupUserPoolData(credentials, userName, tenantId, false, function (err, userPoolData) {
+        lookupUserPoolData(userName, tenantId, false, function (err, userPoolData) {
             var userPool = userPoolData;
             // if the user pool found, proceed
             if (err) {
@@ -495,18 +494,14 @@ function provisionAdminUserWithRoles(user, credentials, adminPolicyName, userPol
     var policyCreationParams = {
         tenantId: user.tenant_id,
         accountId: configuration.aws_account,
-        region: configuration.aws_region,
-        tenantTableName: configuration.table.tenant,
-        userTableName: configuration.table.user,
-        productTableName: configuration.table.product,
-        orderTableName: configuration.table.order
+        region: configuration.aws_region
     };
 
     // init role based on admin policy name
     user.role = adminPolicyName;
 
     // see if this user is already in the system
-    lookupUserPoolData(credentials, user.userName, user.tenant_id, true, function(err, userPoolData) {
+    lookupUserPoolData(user.userName, user.tenant_id, true, function(err, userPoolData) {
         if (!err){
             callback( new Error ('{"Error" : "User already exists"}'));
             winston.debug('{"Error" : "User already exists"}');
@@ -694,10 +689,7 @@ function createNewUser(credentials, userPoolId, identityPoolId, clientId, tenant
                 newUser.tenant_id = tenantId;
                 newUser.sub = cognitoUser.User.Attributes[0].Value;
 
-                // construct the helper object
-                var dynamoHelper = new DynamoDBHelper(userSchema, credentials, configuration);
-
-                dynamoHelper.putItem(newUser, credentials, function (err, createdUser) {
+                dbHelper.createUser(newUser, function (err, rowCount) {
                     if (err) {
                         reject(err);
                     }
@@ -714,32 +706,17 @@ function createNewUser(credentials, userPoolId, identityPoolId, clientId, tenant
 
 /**
  * Lookup a user's pool data in the user table
- * @param credentials The credentials used ben looking up the user
  * @param userId The id of the user being looked up
  * @param tenantId The id of the tenant (if this is not system context)
  * @param isSystemContext Is this being called in the context of a system user (registration, system user provisioning)
  * @param callback The results of the lookup
  */
-function lookupUserPoolData(credentials, userId, tenantId, isSystemContext, callback) {
-
-    // construct the helper object
-    var dynamoHelper = new DynamoDBHelper(userSchema, credentials, configuration);
-
-    // if we're looking this up in a system context, query the GSI with user name only
+function lookupUserPoolData(userId, tenantId, isSystemContext, callback) {
     if (isSystemContext) {
-
-        // init params structure with request params
         var searchParams = {
-            TableName: userSchema.TableName,
-            IndexName: userSchema.GlobalSecondaryIndexes[0].IndexName,
-            KeyConditionExpression: "id = :id",
-            ExpressionAttributeValues: {
-                ":id": userId
-            }
-        };
-
-        // get the item from the database
-        dynamoHelper.query(searchParams, credentials, function (err, users) {
+            id: userId,
+        }
+        dbHelper.lookupUser(searchParams, function (err, users) {
             if (err) {
                 winston.error('Error getting user: ' + err.message);
                 callback(err);
@@ -748,21 +725,17 @@ function lookupUserPoolData(credentials, userId, tenantId, isSystemContext, call
                 if (users.length == 0) {
                     var err = new Error('No user found: ' + userId);
                     callback(err);
-                }
-                else
+                } else {
                     callback(null, users[0]);
+                }
             }
-        });
-    }
-    else {
-        // if this is a tenant context, then we must get with tenant id scope
+        });        
+    } else {
         var searchParams = {
             id: userId,
             tenant_id: tenantId
         }
-
-        // get the item from the database
-        dynamoHelper.getItem(searchParams, credentials, function (err, user) {
+        dbHelper.getUser(searchParams, function (err, user) {
             if (err) {
                 winston.error('Error getting user: ' + err.message);
                 callback(err);
@@ -788,7 +761,7 @@ function updateUserEnabledStatus(req, enable, callback) {
         var tenantId = tokenManager.getTenantId(req);
 
         // Get additional user data required for enabled/disable
-        lookupUserPoolData(credentials, user.userName, tenantId, false, function(err, userPoolData) {
+        lookupUserPoolData(user.userName, tenantId, false, function(err, userPoolData) {
             var userPool = userPoolData;
 
             // if the user pool found, proceed

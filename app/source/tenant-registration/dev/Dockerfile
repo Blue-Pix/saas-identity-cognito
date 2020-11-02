@@ -30,7 +30,7 @@ RUN npm -v
 RUN     yum update -y
 #Install Code
 RUN mkdir /app/
-COPY ./src/ /app/user-manager/
+COPY ./tenant-registration/src/ /app/tenant-registration/
 COPY ./shared-modules/ /app/shared-modules/
 #------------------
 #Shared Modules Setup
@@ -45,13 +45,31 @@ RUN cd /app/shared-modules/config-helper
 RUN npm install
 #-------------------
 #Setup Working Directory
-WORKDIR /app/user-manager/
+WORKDIR /app/tenant-registration/
 #Set Sevice Config Directory
 ENV NODE_CONFIG_DIR=../shared-modules/config-helper/config/
 #Install App
-RUN cd /app/user-manager/
+RUN cd /app/tenant-registration/
 RUN npm install
+
+# RUN yum install -y postgresql-server postgresql-devel postgresql-contrib
+# RUN postgresql-setup initdb
+# RUN systemctl start postgresql.service
+# su - postgresql
+# createuser -d -U postgresql -P hsakuray
+# # password ２回入力
+# createdb -O hsakuray -U postgresql foobar
+# addyser hsakuray
+# su - hsakuray
+# psql -d foobar
+
+
 #Start App
-CMD ["node", "/app/user-manager/server.js"]
+CMD ["node", "/app/tenant-registration/server.js"]
 #expose a port
-EXPOSE 3001
+EXPOSE 3004
+
+
+
+
+# CREATE ROLE hsakuray LOGIN PASSWORD 'hsakuray';

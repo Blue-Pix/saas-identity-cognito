@@ -13,7 +13,8 @@ const winston = require('winston');
 winston.level = configuration.loglevel;
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
-const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
+const DBHelper = require('../shared-modules/db-helper/db-helper.js');
+const dbHelper = new DBHelper();
 
 // Configure AWS Region
 AWS.config.update({region: configuration.aws_region});
@@ -136,9 +137,7 @@ app.post('/tenant', function(req, res) {
         winston.debug('Creating Tenant: ' + tenant.id);
 
         // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(tenantSchema, credentials, configuration);
-
-        dynamoHelper.putItem(tenant, credentials, function (err, tenant) {
+        dbHelper.createTenant(tenant, function (err, rowCount) {
             if (err) {
                 winston.error('Error creating new tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating tenant"}');

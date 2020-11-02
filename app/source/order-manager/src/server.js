@@ -13,7 +13,7 @@ const winston = require('winston');
 winston.level = configuration.loglevel;
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
-const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
+// const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
 
 // Instantiate application
 var app = express();

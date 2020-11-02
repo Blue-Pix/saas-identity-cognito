@@ -44,6 +44,7 @@ module.exports.configure = function(environment) {
                         product: "product",
                         order: "order"
                     },
+                    db: prod.db,
                     userRole: prod.userRole,
                     role: {
                         sns: process.env.SNS_ROLE_ARN
@@ -78,19 +79,20 @@ module.exports.configure = function(environment) {
                 service_url: dev.protocol + dev.domain,
                 name: name,
                 table: table,
+                db: dev.db,
                 userRole: dev.userRole,
                 role: dev.role,
                 tier: dev.tier,
                 port: port,
                 loglevel: dev.log.level,
                 url: {
-                    tenant: dev.protocol + dev.domain + ':' + port.tenant + '/tenant',
-                    user: dev.protocol + dev.domain + ':' + port.user +  '/user',
-                    product: dev.protocol + dev.domain + ':' + port.product + '/product',
-                    reg: dev.protocol + dev.domain + ':' + port.reg + '/reg',
-                    auth: dev.protocol + dev.domain + ':' + port.auth + '/auth',
-                    sys: dev.protocol + dev.domain + ':' + port.sys + '/sys',
-                    order: dev.protocol + dev.domain + ':' + port.order + '/order'
+                    tenant: dev.protocol + "tenant_service" + ':' + port.tenant + '/tenant',
+                    user: dev.protocol + "user_service" + ':' + port.user +  '/user',
+                    product: dev.protocol + "product_service" + ':' + port.product + '/product',
+                    reg: dev.protocol + "reg_service" + ':' + port.reg + '/reg',
+                    auth: dev.protocol + "auth_service" + ':' + port.auth + '/auth',
+                    sys: dev.protocol + "system_service" + ':' + port.sys + '/sys',
+                    order: dev.protocol + "order_service" + ':' + port.order + '/order'
                 }
             }
 
