@@ -51,25 +51,7 @@ ENV NODE_CONFIG_DIR=../shared-modules/config-helper/config/
 #Install App
 RUN cd /app/tenant-registration/
 RUN npm install
-
-# RUN yum install -y postgresql-server postgresql-devel postgresql-contrib
-# RUN postgresql-setup initdb
-# RUN systemctl start postgresql.service
-# su - postgresql
-# createuser -d -U postgresql -P hsakuray
-# # password ２回入力
-# createdb -O hsakuray -U postgresql foobar
-# addyser hsakuray
-# su - hsakuray
-# psql -d foobar
-
-
 #Start App
 CMD ["node", "/app/tenant-registration/server.js"]
 #expose a port
 EXPOSE 3004
-
-
-
-
-# CREATE ROLE hsakuray LOGIN PASSWORD 'hsakuray';
