@@ -46,6 +46,25 @@ DBHelper.prototype.lookupUser = function(params, callback) {
     });
 }
 
+DBHelper.prototype.lookupTenant = function(params, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            // [Todo] tenantId is optional
+            client.query("SELECT * FROM tenants where id = $1", [params.id], function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rows);
+                }
+            });
+        }
+    });
+}
+
 DBHelper.prototype.getUser = function(params, callback) {
     this.pool.connect(function(err, client) {
         if (err) {
@@ -76,13 +95,13 @@ DBHelper.prototype.createTenant = function(params, callback) {
             callback(err);
         } else {
             var statement = `INSERT INTO tenants(
-                id, company_name, tier, identity_pool_id, user_pool_id, system_admin_role, 
+                id, company_name, tier, identity_pool_id, user_pool_id, client_id, system_admin_role, 
                 system_support_role, trust_role, system_admin_policy, system_support_policy
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             `;
             var placeHolders = [
                 params.id, params.companyName, params.tier, params.IdentityPoolId,
-                params.UserPoolId, params.systemAdminRole, params.systemSupportRole,
+                params.UserPoolId, params.ClientId, params.systemAdminRole, params.systemSupportRole,
                 params.trustRole, params.systemAdminPolicy, params.systemSupportPolicy
             ]
             client.query(statement, placeHolders, function (err, result) {

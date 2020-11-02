@@ -8,6 +8,7 @@ CREATE TABLE tenants (
     tier VARCHAR(10) NOT NULL,
     identity_pool_id VARCHAR(255),
     user_pool_id VARCHAR(255),
+    client_id VARCHAR(255),
     system_admin_role VARCHAR(255),
     system_support_role VARCHAR(255),
     trust_role VARCHAR(255),

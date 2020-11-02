@@ -69,6 +69,8 @@ app.post('/reg', function (req, res) {
                     tenant.systemAdminPolicy = tenData.policy.systemAdminPolicy;
                     tenant.systemSupportPolicy = tenData.policy.systemSupportPolicy;
 
+                    tenant.ClientId = tenData.userPoolClient.UserPoolClient.ClientId;
+
                     saveTenantData(tenant)
                 })
                 .then(function () {
@@ -171,6 +173,7 @@ function saveTenantData(tenant) {
             "status": "Active",
             "UserPoolId": tenant.UserPoolId,
             "IdentityPoolId": tenant.IdentityPoolId,
+            "ClientId": tenant.ClientId,
             "systemAdminRole": tenant.systemAdminRole,
             "systemSupportRole": tenant.systemSupportRole,
             "trustRole": tenant.trustRole,

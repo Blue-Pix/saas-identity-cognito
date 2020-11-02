@@ -694,7 +694,7 @@ function createNewUser(credentials, userPoolId, identityPoolId, clientId, tenant
                         reject(err);
                     }
                     else {
-                        resolve(null, createdUser)
+                        resolve(null, newUser)
                     }
                 });
             }
@@ -726,10 +726,25 @@ function lookupUserPoolData(userId, tenantId, isSystemContext, callback) {
                     var err = new Error('No user found: ' + userId);
                     callback(err);
                 } else {
-                    callback(null, users[0]);
+                    var userData = users[0];
+                    dbHelper.lookupTenant({ id: users[0].tenant_id }, function (err, tenants) {
+                        if (err) {
+                            winston.error('Error getting tenant: ' + err.message);
+                            callback(err);
+                        }
+                        else {
+                            if (tenants.length == 0) {
+                                console.debug('No tenant found: ' + userId);
+                            } else {
+                                userData.userPoolId = tenants[0].user_pool_id;
+                                userData.client_id = tenants[0].client_id;
+                            }
+                            callback(null, userData);
+                        }
+                    });
                 }
             }
-        });        
+        });
     } else {
         var searchParams = {
             id: userId,
