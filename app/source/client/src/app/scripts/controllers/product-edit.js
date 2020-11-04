@@ -27,13 +27,8 @@ angular.module('clientApp').controller('ProductEditCtrl', function ($scope, $loc
 
   $scope.saveProduct = function() {
     var product = {
-      productId: $scope.product.productId,
-      sku: $scope.product.sku,
+      id: $scope.product.id,
       title: $scope.product.title,
-      description: $scope.product.description,
-      condition: $scope.product.condition,
-      conditionDescription: $scope.product.conditionDescription,
-      numberInStock: $scope.product.numberInStock,
       unitCost: $scope.product.unitCost
     };
 

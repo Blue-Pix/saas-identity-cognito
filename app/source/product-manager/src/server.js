@@ -17,7 +17,9 @@ winston.level = configuration.loglevel;
 
 // Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
-// const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
+
+const DBHelper = require('../shared-modules/db-helper/db-helper.js');
+const dbHelper = new DBHelper();
 
 // Instantiate application
 var app = express();
@@ -38,23 +40,6 @@ app.use(function(req, res, next) {
     next();
 });
 
-// Create a schema
-var productSchema = {
-    TableName : configuration.table.product,
-    KeySchema: [
-        { AttributeName: "tenantId", KeyType: "HASH"},  //Partition key
-        { AttributeName: "productId", KeyType: "RANGE" }  //Sort key
-    ],
-    AttributeDefinitions: [
-        { AttributeName: "tenantId", AttributeType: "S" },
-        { AttributeName: "productId", AttributeType: "S" }
-    ],
-    ProvisionedThroughput: {
-        ReadCapacityUnits: 10,
-        WriteCapacityUnits: 10
-    }
-};
-
 app.get('/product/health', function(req, res) {
     res.status(200).send({service: 'Product Manager', isAlive: true});
 });
@@ -69,18 +54,18 @@ app.get('/product/:id', function(req, res) {
             tenantId: tenantId,
             productId: req.params.id
         }
-
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(productSchema, credentials, configuration);
-
-        dynamoHelper.getItem(params, credentials, function (err, product) {
+        dbHelper.getProduct(params, function (err, products) {
             if (err) {
                 winston.error('Error getting product: ' + err.message);
                 res.status(400).send('{"Error" : "Error getting product"}');
             }
             else {
+                if (products.length == 0) {
+                    winston.error('No product found');
+                    res.status(400).send('{"Error" : "No product found"}');
+                }
                 winston.debug('Product ' + req.params.id + ' retrieved');
-                res.status(200).send(product);
+                res.status(200).send(products[0]);
             }
         });
     });
@@ -89,18 +74,7 @@ app.get('/product/:id', function(req, res) {
 app.get('/products', function(req, res) {
     winston.debug('Fetching Products for Tenant Id: ' + tenantId);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
-        var searchParams = {
-            TableName: productSchema.TableName,
-            KeyConditionExpression: "tenantId = :tenantId",
-            ExpressionAttributeValues: {
-                ":tenantId": tenantId
-            }
-        };
-
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(productSchema, credentials, configuration);
-
-        dynamoHelper.query(searchParams, credentials, function (error, products) {
+        dbHelper.getProducts(tenantId, function (error, products) {
             if (error) {
                 winston.error('Error retrieving products: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving products"}');
@@ -116,14 +90,14 @@ app.get('/products', function(req, res) {
 
 app.post('/product', function(req, res) {
     tokenManager.getCredentialsFromToken(req, function(credentials) {
-        var product = req.body;
-        product.productId = uuidV4();
-        product.tenantId = tenantId;
+        var params = {
+            id: uuidV4(),
+            tenantId: tenantId,
+            unitCost: req.body.unit_cost,
+            title: req.body.title
+        };
 
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(productSchema, credentials, configuration);
-
-        dynamoHelper.putItem(product, credentials, function (err, product) {
+        dbHelper.createProduct(params, function (err, product) {
             if (err) {
                 winston.error('Error creating new product: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating product"}');
@@ -140,50 +114,28 @@ app.put('/product', function(req, res) {
     winston.debug('Updating product: ' + req.body.productId);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init the params from the request data
-        var keyParams = {
+        var productUpdateParams = {
             tenantId: tenantId,
-            productId: req.body.productId
+            productId: req.body.productId,
+            title: req.body.title,
+            unitCost: req.body.unitCost
         }
 
         winston.debug('Updating product: ' + req.body.productId);
 
-        var productUpdateParams = {
-            TableName: productSchema.TableName,
-            Key: keyParams,
-            UpdateExpression: "set " +
-                "sku=:sku, " +
-                "title=:title, " +
-                "description=:description, " +
-                "#condition=:condition, " +
-                "conditionDescription=:conditionDescription, " +
-                "numberInStock=:numberInStock, " +
-                "unitCost=:unitCost",
-            ExpressionAttributeNames: {
-                '#condition' : 'condition'
-            },
-            ExpressionAttributeValues: {
-                ":sku": req.body.sku,
-                ":title": req.body.title,
-                ":description": req.body.description,
-                ":condition":req.body.condition,
-                ":conditionDescription":req.body.conditionDescription,
-                ":numberInStock":req.body.numberInStock,
-                ":unitCost":req.body.unitCost
-            },
-            ReturnValues:"UPDATED_NEW"
-        };
-
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(productSchema, credentials, configuration);
-
-        dynamoHelper.updateItem(productUpdateParams, credentials, function (err, product) {
+        dbHelper.updateProduct(productUpdateParams, function (err, rowCount) {
             if (err) {
                 winston.error('Error updating product: ' + err.message);
                 res.status(400).send('{"Error" : "Error updating product"}');
             }
             else {
-                winston.debug('Product ' + req.body.title + ' updated');
-                res.status(200).send(product);
+                if (rowCount == 1) {
+                    winston.debug('Product ' + req.body.title + ' updated');
+                    res.status(200).send({"status": "success"});
+                } else {
+                    winston.error('Error updating product');
+                    res.status(400).send('{"Error" : "Error updating product"}');
+                }
             }
         });
     });
@@ -193,26 +145,23 @@ app.delete('/product/:id', function(req, res) {
     winston.debug('Deleting product: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
-        // init parameter structure
         var deleteProductParams = {
-            TableName : productSchema.TableName,
-            Key: {
-                tenantId: tenantId,
-                productId: req.params.id
-            }
+            tenantId: tenantId,
+            productId: req.params.id
         };
-
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(productSchema, credentials, configuration);
-
-        dynamoHelper.deleteItem(deleteProductParams, credentials, function (err, product) {
+        dbHelper.deleteProduct(deleteProductParams, function (err, rowCount) {
             if (err) {
                 winston.error('Error deleting product: ' + err.message);
                 res.status(400).send('{"Error" : "Error deleting product"}');
             }
             else {
-                winston.debug('Product ' + req.params.id + ' deleted');
-                res.status(200).send({status: 'success'});
+                if (rowCount == 1) {
+                    winston.debug('Product ' + req.params.id + ' deleted');
+                    res.status(200).send({status: 'success'});
+                } else {
+                    winston.error('Error deleting product');
+                    res.status(400).send('{"Error" : "Error deleting product"}');
+                }
             }
         });
     });

@@ -12,24 +12,14 @@ angular.module('clientApp').controller('ProductAddCtrl', function ($scope, $loca
 
     $scope.saveProduct = function() {
       var product = {
-        sku: $scope.product.sku,
         title: $scope.product.title,
-        description: $scope.product.description,
-        condition: $scope.product.condition,
-        conditionDescription: $scope.product.conditionDescription,
-        numberInStock: $scope.product.numberInStock,
         unitCost: $scope.product.unitCost
       };
 
       $http.post(Constants.PRODUCT_MANAGER_URL + '/product', product)
         .then(function(response) {
           console.log('Product added');
-          $scope.product.sku = '';
           $scope.product.title = '';
-          $scope.product.description = '';
-          $scope.product.condition = '1';
-          $scope.product.conditionDescription = '';
-          $scope.product.numberInStock = 0;
           $scope.product.unitCost = 0;
           $route.reload();
         })

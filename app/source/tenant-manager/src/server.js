@@ -81,14 +81,7 @@ app.get('/tenants', function(req, res) {
     winston.debug('Fetching all tenants');
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
-        var scanParams = {
-            TableName: tenantSchema.TableName,
-        }
-
-        // construct the helper object
-        var dynamoHelper = new DynamoDBHelper(tenantSchema, credentials, configuration);
-
-        dynamoHelper.scan(scanParams, credentials, function (error, tenants) {
+        dbHelper.getTenants(credentials, function (error, tenants) {
             if (error) {
                 winston.error('Error retrieving tenants: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving tenants"}');

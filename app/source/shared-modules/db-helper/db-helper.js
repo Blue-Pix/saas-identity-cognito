@@ -88,6 +88,25 @@ DBHelper.prototype.getUser = function(params, callback) {
     });
 }
 
+DBHelper.prototype.getTenants = function(credentials, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            // [Todo] tenantId is optional
+            client.query("SELECT * FROM tenants", function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rows);
+                }
+            });
+        }
+    });
+}
+
 DBHelper.prototype.createTenant = function(params, callback) {
     this.pool.connect(function(err, client) {
         if (err) {
@@ -131,6 +150,103 @@ DBHelper.prototype.createUser = function(params, callback) {
                 params.lastName, params.email
             ]
             client.query(statement, placeHolders, function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rowCount);
+                }
+            });
+        }
+    });
+}
+
+DBHelper.prototype.createProduct = function(params, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            var statement = `INSERT INTO products(
+                id, tenant_id, title, unit_cost
+            ) values ($1, $2, $3, $4)
+            `;
+            var placeHolders = [
+                params.id, params.tenantId, params.title, params.unitCost
+            ];
+            client.query(statement, placeHolders, function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rowCount);
+                }
+            });
+        }
+    });
+}
+
+DBHelper.prototype.getProducts = function(tenantId, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            client.query("SELECT * FROM products where tenant_id = $1", [tenantId], function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rows);
+                }
+            });
+        }
+    });
+}
+
+DBHelper.prototype.getProduct = function(params, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            client.query("SELECT * FROM products where id = $1 and tenant_id = $2", [params.productId, params.tenantId], function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rows);
+                }
+            });
+        }
+    });
+}
+
+DBHelper.prototype.updateProduct = function(params, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            client.query("UPDATE products set title = $1, unit_cost = $2 where id = $3 and tenant_id = $4", [params.title, params.unitCost, params.productId, params.tenantId], function (err, result) {
+                if (err) {
+                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    callback(err);
+                } else {
+                    callback(null, result.rowCount);
+                }
+            });
+        }
+    });
+}
+
+DBHelper.prototype.deleteProduct = function(params, callback) {
+    this.pool.connect(function(err, client) {
+        if (err) {
+            winston.error("Unable to connect db. Error:", JSON.stringify(err, null, 2));
+            callback(err);
+        } else {
+            client.query("DELETE FROM products where id = $1 and tenant_id = $2", [params.productId, params.tenantId], function (err, result) {
                 if (err) {
                     winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
                     callback(err);
