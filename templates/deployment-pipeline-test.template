@@ -35,6 +35,14 @@ Parameters:
     Type: String
   ArtifactBucket:
     Type: String
+  DBHost:
+    Type: String
+  DBUser:
+    Type: String
+  DBPassword:
+    Type: String
+  DBName:
+    Type: String
 Resources:
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
@@ -137,7 +145,7 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > ../build.json
+                - printf '{"DBHost":"%s","DBUser":"%s","DBPassword":"%s","DBName":"%s","tag":"%s"}' $DB_HOST $DB_USER $DB_PASSWORD $DB_NAME $TAG > ../build.json
           artifacts:
             files: build.json
       Environment:
@@ -149,6 +157,14 @@ Resources:
           Value: !Ref AWS::Region
         - Name: SERVICE_NAME
           Value: !Ref ServiceName
+        - Name: DB_HOST
+          Value: !Ref DBHost
+        - Name: DB_USER
+          Value: !Ref DBUser
+        - Name: DB_PASSWORD
+          Value: !Ref DBPassword
+        - Name: DB_NAME
+          Value: !Ref DBName
         - Name: REPOSITORY_URI
           Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}
       ServiceRole: !Ref CodeBuildServiceRole
@@ -192,6 +208,14 @@ Resources:
           Value: !Ref AWS::Region
         - Name: SERVICE_NAME
           Value: !Ref ServiceName
+        - Name: DB_HOST
+          Value: !Ref DBHost
+        - Name: DB_USER
+          Value: !Ref DBUser
+        - Name: DB_PASSWORD
+          Value: !Ref DBPassword
+        - Name: DB_NAME
+          Value: !Ref DBName
         - Name: SERVICE_URL
           Value: !Ref ServiceUrl
         - Name: HEALTH_CHECK

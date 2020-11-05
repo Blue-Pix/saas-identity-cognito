@@ -350,6 +350,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /user*
@@ -378,6 +382,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /auth*
@@ -406,6 +414,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /tenant*
@@ -434,6 +446,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /reg*
@@ -462,6 +478,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /sys*
@@ -490,6 +510,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /product*
@@ -518,6 +542,10 @@ Resources:
         VPC: !Ref VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
         ServiceUrl: !GetAtt ALB.Outputs.LoadBalancerUrl
+        DBHost: !GetAtt RDS.Outputs.DBClusterEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBPassword
+        DBName: !Ref DBName
         SnsRole: !GetAtt Role.Outputs.SNSRoleArn
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /order*
@@ -758,7 +786,7 @@ Resources:
   #       Domain: !GetAtt ALB.Outputs.LoadBalancerUrl
   #       Protocol: http://
   #       Body:
-  #         Fn::Sub: '{"companyName":"${Company}","accountName":"${Company}","ownerName":"${Email}","email":"${Email}","userName":"${Email}","firstName":"${Firstname}","lastName":"${Lastname}"}'
+  #         Fn::Sub: '{"companyName":"${Company}","email":"${Email}","userName":"${Email}","firstName":"${Firstname}","lastName":"${Lastname}","tier":"Free Tier","role":"TenantAdmin"}'
   #       Path: /sys/admin
   #       Method: POST
   #       S3Bucket: !GetAtt ZipFiles.Outputs.AssetBucket

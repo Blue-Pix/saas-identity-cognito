@@ -6,6 +6,34 @@
                 "build.json",
                 "tag"
             ]
+        },
+        "DBHost": {
+            "Fn::GetParam": [
+                "BuildOutput",
+                "build.json",
+                "DBHost"
+            ]
+        },
+        "DBUser": {
+            "Fn::GetParam": [
+                "BuildOutput",
+                "build.json",
+                "DBUser"
+            ]
+        },
+        "DBPassword": {
+            "Fn::GetParam": [
+                "BuildOutput",
+                "build.json",
+                "DBPassword"
+            ]
+        },
+        "DBName": {
+            "Fn::GetParam": [
+                "BuildOutput",
+                "build.json",
+                "DBName"
+            ]
         }
     }
 }

@@ -44,7 +44,6 @@ module.exports.configure = function(environment) {
                         product: "product",
                         order: "order"
                     },
-                    db: prod.db,
                     userRole: prod.userRole,
                     role: {
                         sns: process.env.SNS_ROLE_ARN
@@ -79,7 +78,6 @@ module.exports.configure = function(environment) {
                 service_url: dev.protocol + dev.domain,
                 name: name,
                 table: table,
-                db: dev.db,
                 userRole: dev.userRole,
                 role: dev.role,
                 tier: dev.tier,

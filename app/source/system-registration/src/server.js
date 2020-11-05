@@ -10,6 +10,9 @@ const request = require('request');
 const configModule = require('../shared-modules/config-helper/config.js');
 var configuration = configModule.configure(process.env.NODE_ENV);
 
+const DBHelper = require('../shared-modules/db-helper/db-helper.js');
+const dbHelper = new DBHelper();
+
 //Configure Logging
 const winston = require('winston');
 winston.level = configuration.loglevel;
@@ -291,6 +294,18 @@ function deleteTables() {
 
 app.get('/sys/health', function(req, res) {
     res.status(200).send({service: 'Tenant Registration', isAlive: true});
+});
+
+app.get('/sys/init_table', function (req, res) {
+    dbHelper.createTable(function (err, tenant) {
+        if (err) {
+            winston.error('Error creating table:');
+            res.status(400).send('{"Error" : "Error creating table"}');
+        }
+        else {
+            res.status(200).send({"status": "success"});
+        }
+    });
 });
 
 

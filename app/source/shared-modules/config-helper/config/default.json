@@ -46,7 +46,7 @@
       }
     },
     "prod":{
-      "protocol": "https://",
+      "protocol": "http://",
       "port": {
         "auth": 3000,
         "user": 3001,

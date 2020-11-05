@@ -33,6 +33,7 @@ Resources:
       EngineVersion: 11.8
       MasterUsername: !Ref DBMasterUserName
       MasterUserPassword: !Ref DBPassword
+      Port: 5432
       VpcSecurityGroupIds:
         - !Ref RDSSecurityGroup
   Writer: 

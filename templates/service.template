@@ -48,6 +48,18 @@ Parameters:
   ContainerPort:
     Description: The Container Port
     Type: Number
+  DBHost:
+    Description: ""
+    Type: String
+  DBUser:
+    Description: ""
+    Type: String
+  DBPassword:
+    Description: ""
+    Type: String
+  DBName:
+    Description: ""
+    Type: String
 Resources:
   Service:
     Type: AWS::ECS::Service
@@ -77,6 +89,14 @@ Resources:
         Environment:
         - Name: SERVICE_URL
           Value: !Ref ServiceUrl
+        - Name: PGHOST
+          Value: !Ref DBHost
+        - Name: PGUSER
+          Value: !Ref DBUser
+        - Name: PGPASSWORD
+          Value: !Ref DBPassword
+        - Name: PGDATABASE
+          Value: !Ref DBName
         - Name: AWS_ACCOUNT_ID
           Value: !Ref AWS::AccountId
         - Name: AWS_REGION
