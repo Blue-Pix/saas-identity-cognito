@@ -135,7 +135,7 @@ module.exports.decodeOpenID = function(bearerToken) {
  * @param req A request
  * @returns The access credentials
  */
-module.exports.getCredentialsFromToken = function(req, updateCredentials) {
+module.exports.getCredentialsFromToken = function(req, updateCredentials, customUrl) {
     var bearerToken = req.get('Authorization');
     if (bearerToken) {
         var tokenValue = bearerToken.substring(bearerToken.indexOf(' ') + 1);
@@ -144,7 +144,7 @@ module.exports.getCredentialsFromToken = function(req, updateCredentials) {
             var userName = decodedIdToken['cognito:username'];
             async.waterfall([
                 function(callback) {
-                    getUserPoolWithParams(userName, callback)
+                    getUserPoolWithParams(userName, callback, customUrl)
                 },
                 function(userPool, callback) {
                     authenticateUserInPool(userPool, tokenValue, callback)
@@ -172,10 +172,16 @@ module.exports.getCredentialsFromToken = function(req, updateCredentials) {
  * @param user The username to lookup
  * @param callback Function called with found user pool
  */
-module.exports.getUserPool = function(userName, callback) {
+module.exports.getUserPool = function(userName, callback, customUrl) {
     // Create URL for user-manager request
     // var userURL = userURL + '/system/' + userName;
-    var userURL   = configuration.url.user + '/pool/' + userName;
+    var userURL;
+    if (customUrl) {
+        userURL = customUrl + '/pool/' + userName;;
+    } else {
+        userURL = configuration.url.user + '/pool/' + userName;
+    }
+    
     request({
         url: userURL,
         method: "GET",
@@ -205,9 +211,15 @@ module.exports.getUserPool = function(userName, callback) {
  * @param idToken Identity token
  * @return params object with user pool and idToken
  */
-function getUserPoolWithParams(userName, callback) {
+function getUserPoolWithParams(userName, callback, customUrl) {
 
-    var userURL   = configuration.url.user + '/pool/' + userName;
+    var userURL;
+    if (customUrl) {
+        userURL = customUrl + '/pool/' + userName;
+    } else {
+        userURL = configuration.url.user + '/pool/' + userName;
+    }
+    
     // fire the request
     request({
         url: userURL,
@@ -231,10 +243,16 @@ function getUserPoolWithParams(userName, callback) {
  * @param user The username to lookup
  * @param callback Function called with found user pool
  */
-module.exports.getInfra = function(input, callback) {
+module.exports.getInfra = function(input, callback, customUrl) {
     // Create URL for user-manager request
     // var userURL = userURL + '/system/' + userName;
-    var tenantsUrl   = configuration.url.tenant + 's/system/';
+    var tenantsUrl;
+    if (customUrl) {
+        tenantsUrl = customUrl + 's/system/';
+    } else {
+        tenantsUrl = configuration.url.tenant + 's/system/';
+    }
+    
     console.log(tenantsUrl);
     request({
         url: tenantsUrl,
@@ -309,7 +327,7 @@ function authenticateUserInPool(userPool, idToken, callback) {
     var params = {
         token: idToken,
         provider: provider,
-        IdentityPoolId: userPool.identityPoolId
+        IdentityPoolId: userPool.IdentityPoolId
     }
     var getIdentity = getId(params, function (ret, data) {
         if (ret) {

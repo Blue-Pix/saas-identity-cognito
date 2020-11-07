@@ -14,7 +14,7 @@ Parameters:
   ClusterSize:
     Description: How many ECS hosts do you want to initially deploy?
     Type: Number
-    Default: 4
+    Default: 1
   VPC:
     Description: Choose which VPC this ECS cluster should be deployed to
     Type: AWS::EC2::VPC::Id
@@ -157,6 +157,17 @@ Resources:
             - ecr:GetDownloadUrlForLayer
             - ecr:GetAuthorizationToken
             Resource: '*'
+          - Sid: DYNAMODB
+            Effect: Allow
+            Action:
+            - dynamodb:Query
+            - dynamodb:PutItem
+            - dynamodb:DescribeTable
+            - dynamodb:DeleteTable
+            - dynamodb:GetItem
+            - dynamodb:CreateTable
+            - dynamodb:Scan
+            Resource: '*'
           - Sid: IAM
             Effect: Allow
             Action:
@@ -203,6 +214,16 @@ Resources:
             - cognito-idp:DeleteUserPool
             - cognito-idp:AdminGetUser
             Resource: '*'
+          - Sid: APIGatewayKeysCertificates
+            Effect: Allow
+            Action:
+            - apigateway:GET
+            - apigateway:HEAD
+            - apigateway:OPTIONS
+            Resource:
+            - arn:aws:apigateway:us-east-1::/clientcertificates/*
+            - arn:aws:apigateway:us-east-1::/domainnames/*
+            - arn:aws:apigateway:us-east-1::/apikeys/*
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

@@ -21,7 +21,7 @@ Parameters:
     Description: The S3 Bucket Prefix
     Type: String
   TenantTable:
-    Description: The Table Name for Tenant DB
+    Description: Tenant table name
     Type: String
 Resources:
   LambdaAuthorizer:
@@ -103,62 +103,6 @@ Resources:
                     statusCode: '200'
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
-          /auth/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /auth/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 requestTemplates:
@@ -255,62 +199,6 @@ Resources:
                     statusCode: '200'
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: '''DELETE,POST,OPTIONS,PUT'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
-          /order/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 requestTemplates:
@@ -584,62 +472,6 @@ Resources:
                   application/json: '{"statusCode": 200}'
                 passthroughBehavior: when_no_match
                 type: mock
-          /product/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
           /product/{id}:
             get:
               produces:
@@ -867,7 +699,7 @@ Resources:
                   application/json: '{"statusCode": 200}'
                 passthroughBehavior: when_no_match
                 type: mock
-          /reg/health:
+          /health:
             get:
               produces:
               - application/json
@@ -890,7 +722,7 @@ Resources:
                   - ''
                   - - http://
                     - Ref: ServiceUrl
-                    - /reg/health
+                    - /health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
@@ -1069,62 +901,6 @@ Resources:
                   application/json: '{"statusCode": 200}'
                 passthroughBehavior: when_no_match
                 type: mock
-          /sys/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /sys/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
           /tenant:
             post:
               produces:
@@ -1213,62 +989,6 @@ Resources:
                     statusCode: '200'
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: '''DELETE,POST,PUT,OPTIONS'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
-          /tenant/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 requestTemplates:
@@ -1718,62 +1438,6 @@ Resources:
                     statusCode: '200'
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: '''PUT,OPTIONS'''
-                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
-                passthroughBehavior: when_no_match
-                type: mock
-          /user/health:
-            get:
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: '''*'''
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/health
-                passthroughBehavior: when_no_match
-                httpMethod: GET
-                type: http_proxy
-            options:
-              consumes:
-              - application/json
-              produces:
-              - application/json
-              responses:
-                '200':
-                  description: 200 response
-                  schema:
-                    $ref: '#/definitions/Empty'
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Headers:
-                      type: string
-              x-amazon-apigateway-integration:
-                responses:
-                  default:
-                    statusCode: '200'
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Headers,X-Requested-With,Access-Control-Allow-Origin'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 requestTemplates:

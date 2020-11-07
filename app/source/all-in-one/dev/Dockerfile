@@ -30,7 +30,7 @@ RUN npm -v
 RUN     yum update -y
 #Install Code
 RUN mkdir /app/
-COPY ./src/ /app/system-registration/
+COPY ./all-in-one/src/ /app/all-in-one/
 COPY ./shared-modules/ /app/shared-modules/
 #------------------
 #Shared Modules Setup
@@ -48,13 +48,13 @@ RUN cd /app/shared-modules/config-helper
 RUN npm install
 #-------------------
 #Setup Working Directory
-WORKDIR /app/system-registration/
+WORKDIR /app/all-in-one/
 #Set Sevice Config Directory
 ENV NODE_CONFIG_DIR=../shared-modules/config-helper/config/
 #Install App
-RUN cd /app/system-registration/
+RUN cd /app/all-in-one/
 RUN npm install
 #Start App
-CMD ["node", "/app/system-registration/server.js"]
+CMD ["node", "/app/all-in-one/server.js"]
 #expose a port
-EXPOSE 3011
+EXPOSE 3000

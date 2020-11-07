@@ -12,7 +12,8 @@
         "reg": 3004,
         "sys": 3011,
         "product": 3006,
-        "order": 3015
+        "order": 3015,
+        "all": 3099
       },
         "role": {
           "sns":""
@@ -24,7 +25,8 @@
         "reg": "Tenant Registration Manager",
         "sys": "System Registration Manager",
         "product": "Product Manager",
-        "order": "Order Manager"
+        "order": "Order Manager",
+        "all": "All-in-one"
       },
       "table": {
         "user": "User",
@@ -39,14 +41,14 @@
         "tenantUser" : "TenantUser"
       },
       "tier": {
-        "system": "System Tier"
+        "system": "System"
       },
       "log": {
         "level": "debug"
       }
     },
     "prod":{
-      "protocol": "http://",
+      "protocol": "https://",
       "port": {
         "auth": 3000,
         "user": 3001,
@@ -54,7 +56,8 @@
         "reg": 3004,
         "sys": 3011,
         "product": 3006,
-        "order": 3015
+        "order": 3015,
+        "all": 3099
       },
       "name": {
         "auth": "Authentication Manager",
@@ -63,7 +66,8 @@
         "reg": "Tenant Registration Manager",
         "sys": "System Registration Manager",
         "product": "Product Manager",
-        "order": "Order Manager"
+        "order": "Order Manager",
+        "all": "All-in-one"
       },
       "table": {
         "user": "User",
@@ -78,7 +82,7 @@
         "tenantUser" : "TenantUser"
       },
       "tier": {
-        "system": "System Tier"
+        "system": "System"
       },
       "log": {
         "level": "debug"

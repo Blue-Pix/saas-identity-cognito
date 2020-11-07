@@ -1,0 +1,26 @@
+{
+  "Name": "all-in-one",
+  "version": "1.0.0",
+  "description": "all service included",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no tests currently specified\""
+  },
+  "dependencies": {
+    "amazon-cognito-identity-js": "1.16.0",
+    "amazon-cognito-js": "1.1.0",
+    "async": "2.3.0",
+    "aws-sdk": "2.24.0",
+    "body-parser": "latest",
+    "config": "1.25.1",
+    "express": "latest",
+    "jsonwebtoken": "7.3.0",
+    "jwk-to-pem": "1.2.6",
+    "randomstring": "1.1.5",
+    "request": "2.81.0",
+    "uuid": "3.0.1",
+    "winston": "latest"
+  },
+  "author": "Blue-Pix",
+  "license": "Apache-2.0"
+}

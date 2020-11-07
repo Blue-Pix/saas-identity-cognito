@@ -19,27 +19,27 @@ angular.module('clientApp').controller('MainCtrl', function ($scope, $timeout, $
     $timeout(function() {
       // only poll if we're on the home page
       if ($location.path() === '/') {
-        getServiceHealth(Constants.AUTH_MANAGER_URL + '/auth', function (healthStatus) {
+        getServiceHealth(Constants.AUTH_MANAGER_URL, function (healthStatus) {
           $scope.authenticationManagerHealthy = healthStatus;
         });
 
-        getServiceHealth(Constants.TENANT_MANAGER_URL + '/tenant', function (healthStatus) {
+        getServiceHealth(Constants.TENANT_MANAGER_URL, function (healthStatus) {
           $scope.tenantManagerHealthy = healthStatus;
         });
 
-        getServiceHealth(Constants.TENANT_REGISTRATION_URL + '/reg', function (healthStatus) {
+        getServiceHealth(Constants.TENANT_REGISTRATION_URL, function (healthStatus) {
           $scope.tenantRegistrationHealthy = healthStatus;
         });
 
-        getServiceHealth(Constants.ORDER_MANAGER_URL + '/order', function (healthStatus) {
+        getServiceHealth(Constants.ORDER_MANAGER_URL, function (healthStatus) {
           $scope.orderManagerHealthy = healthStatus;
         });
 
-        getServiceHealth(Constants.PRODUCT_MANAGER_URL + '/product', function (healthStatus) {
+        getServiceHealth(Constants.PRODUCT_MANAGER_URL, function (healthStatus) {
           $scope.productManagerHealthy = healthStatus;
         });
 
-        getServiceHealth(Constants.USER_MANAGER_URL + '/user', function (healthStatus) {
+        getServiceHealth(Constants.USER_MANAGER_URL, function (healthStatus) {
           $scope.userManagerHealthy = healthStatus;
         });
       }

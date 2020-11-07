@@ -37,6 +37,9 @@ COPY ./shared-modules/ /app/shared-modules/
 WORKDIR /app/shared-modules/db-helper
 RUN cd /app/shared-modules/db-helper
 RUN npm install
+WORKDIR /app/shared-modules/dynamodb-helper
+RUN cd /app/shared-modules/dynamodb-helper
+RUN npm install
 WORKDIR /app/shared-modules/token-manager
 RUN cd /app/shared-modules/token-manager
 RUN npm install

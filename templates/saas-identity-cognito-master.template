@@ -41,6 +41,10 @@ Metadata:
     - Label:
         default: DB Configuration
       Parameters:
+      - UserTable
+      - TenantTable
+      - ProductTable
+      - OrderTable
       - DBInstanceClass
       - DBName
       - DBMasterUserName
@@ -75,7 +79,15 @@ Metadata:
       Firstname:
         default: First Name
       Lastname:
-        default: Last Name
+        default: Last 
+      UserTable:
+        default: User
+      TenantTable:
+        default: Tenant
+      ProductTable:
+        default: Product
+      OrderTable:
+        default: Order
       MyIpAddress:
         default: My IP Address
       DBInstanceClass:
@@ -174,6 +186,22 @@ Parameters:
     Description: The Last Name of the Sys Admin.
     Default: MyLastName
     Type: String
+  UserTable:
+    Description: The DynamoDB Table for Users of the Multi-Tenant System
+    Default: User
+    Type: String
+  TenantTable:
+    Description: The DynamoDB Table for Tenants of the Multi-Tenant System
+    Default: Tenant
+    Type: String
+  ProductTable:
+    Description: The DynamoDB Table for Products of the Multi-Tenant System
+    Default: Product
+    Type: String
+  OrderTable:
+    Description: The DynamoDB Table for Orders of the Multi-Tenant System
+    Default: Order
+    Type: String
   MyIpAddress:
     Description: your ip address
     Default: 0.0.0.0/32
@@ -249,6 +277,10 @@ Resources:
         Company: !Ref Company
         Firstname: !Ref Firstname
         Lastname: !Ref Lastname
+        UserTable: !Ref UserTable
+        TenantTable: !Ref TenantTable
+        ProductTable: !Ref ProductTable
+        OrderTable: !Ref OrderTable
         MyIpAddress: !Ref MyIpAddress
         DBInstanceClass: !Ref DBInstanceClass
         DBName: !Ref DBName

@@ -13,6 +13,7 @@ const winston = require('winston');
 winston.level = configuration.loglevel;
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
+const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
 const DBHelper = require('../shared-modules/db-helper/db-helper.js');
 const dbHelper = new DBHelper();
 
@@ -81,7 +82,13 @@ app.get('/tenants', function(req, res) {
     winston.debug('Fetching all tenants');
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
-        dbHelper.getTenants(credentials, function (error, tenants) {
+        var scanParams = {
+            TableName: tenantSchema.TableName,
+        }
+
+        // construct the helper object
+        var dynamoHelper = new DynamoDBHelper(tenantSchema, credentials, configuration);
+        dynamoHelper.scan(scanParams, credentials, function (error, tenants) {
             if (error) {
                 winston.error('Error retrieving tenants: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving tenants"}');
@@ -130,7 +137,9 @@ app.post('/tenant', function(req, res) {
         winston.debug('Creating Tenant: ' + tenant.id);
 
         // construct the helper object
-        dbHelper.createTenant(tenant, function (err, rowCount) {
+        var dynamoHelper = new DynamoDBHelper(tenantSchema, credentials, configuration);
+
+        dynamoHelper.putItem(tenant, credentials, function (err, tenant) {
             if (err) {
                 winston.error('Error creating new tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating tenant"}');

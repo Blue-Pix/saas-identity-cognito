@@ -15,6 +15,14 @@ Parameters:
     Type: String
   SnsRole:
     Type: String
+  UserTable:
+    Type: String
+  TenantTable:
+    Type: String
+  ProductTable:
+    Type: String
+  OrderTable:
+    Type: String
   Listener:
     Type: String
   Path:
@@ -189,8 +197,9 @@ Resources:
                 - sudo apt-get update && sudo apt-get install -y curl
             build:
               commands:
+                - echo $SERVICE_URL
                 - echo $HEALTH_CHECK
-                - CODE="$(curl -s -o /dev/null -w "%{http_code}" http://"${SERVICE_URL}""${HEALTH_CHECK}")"
+                - CODE="$(curl -s -o /dev/null -w "%{http_code}" https://"${SERVICE_URL}""${HEALTH_CHECK}")"
                 - echo $CODE
                 - if [ $CODE -eq 200 ]; then echo 'SUCCESS'; else exit 1; fi
             post_build:
@@ -296,6 +305,10 @@ Resources:
                 "Cluster": "${Cluster}",
                 "VPC": "${VPC}",
                 "ServiceUrl": "${ServiceUrl}",
+                "UserTable": "${UserTable}",
+                "TenantTable": "${TenantTable}",
+                "ProductTable": "${ProductTable}",
+                "OrderTable": "${OrderTable}",
                 "SnsRole": "${SnsRole}",
                 "Path": "${Path}",
                 "HealthCheck": "${HealthCheck}",

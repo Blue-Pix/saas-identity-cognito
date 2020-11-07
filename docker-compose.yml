@@ -1,103 +1,117 @@
 version: "3"
 services:
-  reg_service:
+  all_in_one_service:
     build: 
       context: ./app/source/
-      dockerfile: tenant-registration/dev/Dockerfile
-    container_name: "reg_service"
+      dockerfile: all-in-one/dev/Dockerfile
+    container_name: "all_in_one_service"
     env_file:
       - dev_service.env
     ports:
-      - "3004:3004"
+      - "3099:3099"
     volumes:
-      - ./app/source/tenant-registration/src:/app/tenant-registration
-      - /app/tenant-registration/node_modules
+      - ./app/source/all-in-one/src:/app/all-in-one
+      - /app/all-in-one/node_modules
     depends_on:
       - db
-  tenant_service:
-    build: 
-      context: ./app/source/
-      dockerfile: tenant-manager/dev/Dockerfile
-    container_name: "tenant_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3003:3003"
-    volumes:
-      - ./app/source/tenant-manager/src:/app/tenant-manager
-      - /app/tenant-manager/node_modules
-    depends_on:
-      - db
-  user_service:
-    build: 
-      context: ./app/source/
-      dockerfile: user-manager/dev/Dockerfile
-    container_name: "user_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./app/source/user-manager/src:/app/user-manager
-      - /app/user-manager/node_modules
-    depends_on:
-      - db
-  auth_service:
-    build: 
-      context: ./app/source/
-      dockerfile: auth-manager/dev/Dockerfile
-    container_name: "auth_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./app/source/auth-manager/src:/app/auth-manager
-      - /app/auth-manager/node_modules
-    depends_on:
-      - db
-  order_service:
-    build: 
-      context: ./app/source/
-      dockerfile: order-manager/dev/Dockerfile
-    container_name: "order_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3015:3015"
-    volumes:
-      - ./app/source/order-manager/src:/app/order-manager
-      - /app/order-manager/node_modules
-    depends_on:
-      - db
-  product_service:
-    build: 
-      context: ./app/source/
-      dockerfile: product-manager/dev/Dockerfile
-    container_name: "product_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3006:3006"
-    volumes:
-      - ./app/source/product-manager/src:/app/product-manager
-      - /app/product-manager/node_modules
-    depends_on:
-      - db
-  system_service:
-    build: 
-      context: ./app/source/
-      dockerfile: system-registration/dev/Dockerfile
-    container_name: "system_service"
-    env_file:
-      - dev_service.env
-    ports:
-      - "3011:3011"
-    volumes:
-      - ./app/source/system-registration/src:/app/system-registration
-      - /app/system-registration/node_modules
-    depends_on:
-      - db
+  # reg_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: tenant-registration/dev/Dockerfile
+  #   container_name: "reg_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3004:3004"
+  #   volumes:
+  #     - ./app/source/tenant-registration/src:/app/tenant-registration
+  #     - /app/tenant-registration/node_modules
+  #   depends_on:
+  #     - db
+  # tenant_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: tenant-manager/dev/Dockerfile
+  #   container_name: "tenant_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3003:3003"
+  #   volumes:
+  #     - ./app/source/tenant-manager/src:/app/tenant-manager
+  #     - /app/tenant-manager/node_modules
+  #   depends_on:
+  #     - db
+  # user_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: user-manager/dev/Dockerfile
+  #   container_name: "user_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./app/source/user-manager/src:/app/user-manager
+  #     - /app/user-manager/node_modules
+  #   depends_on:
+  #     - db
+  # auth_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: auth-manager/dev/Dockerfile
+  #   container_name: "auth_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./app/source/auth-manager/src:/app/auth-manager
+  #     - /app/auth-manager/node_modules
+  #   depends_on:
+  #     - db
+  # order_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: order-manager/dev/Dockerfile
+  #   container_name: "order_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3015:3015"
+  #   volumes:
+  #     - ./app/source/order-manager/src:/app/order-manager
+  #     - /app/order-manager/node_modules
+  #   depends_on:
+  #     - db
+  # product_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: product-manager/dev/Dockerfile
+  #   container_name: "product_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3006:3006"
+  #   volumes:
+  #     - ./app/source/product-manager/src:/app/product-manager
+  #     - /app/product-manager/node_modules
+  #   depends_on:
+  #     - db
+  # system_service:
+  #   build: 
+  #     context: ./app/source/
+  #     dockerfile: system-registration/dev/Dockerfile
+  #   container_name: "system_service"
+  #   env_file:
+  #     - dev_service.env
+  #   ports:
+  #     - "3011:3011"
+  #   volumes:
+  #     - ./app/source/system-registration/src:/app/system-registration
+  #     - /app/system-registration/node_modules
+  #   depends_on:
+  #     - db
   db:
     image: postgres:11
     container_name: "db"
