@@ -14,7 +14,7 @@
     "body-parser": "latest",
     "config": "1.25.1",
     "express": "latest",
-    "jsonwebtoken": "7.3.0",
+    "jsonwebtoken": "9.0.0",
     "jwk-to-pem": "1.2.6",
     "request": "2.81.0",
     "winston": "latest"
