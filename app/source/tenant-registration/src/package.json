@@ -13,7 +13,7 @@
     "body-parser": "latest",
     "config": "1.25.1",
     "express": "latest",
-    "request": "2.81.0",
+    "request": "2.88.2",
     "uuid": "3.0.1",
     "winston": "latest"
   },
