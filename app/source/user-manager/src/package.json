@@ -10,7 +10,7 @@
     "amazon-cognito-identity-js": "1.16.0",
     "amazon-cognito-js": "1.1.0",
     "async": "2.4.1",
-    "aws-sdk": "2.24.0",
+    "aws-sdk": "2.38.0",
     "body-parser": "latest",
     "config": "1.25.1",
     "express": "latest",
