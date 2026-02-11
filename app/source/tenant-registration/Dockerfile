@@ -1,5 +1,5 @@
 #Base Image is Amazon Linux
-FROM amazonlinux:latest
+FROM amazonlinux:2023.10.20260202.2
 # Replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 #Update
